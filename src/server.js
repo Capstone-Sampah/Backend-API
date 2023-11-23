@@ -1,18 +1,15 @@
 const express = require('express');
-const dbPool = require('./config/database.js');
+const checkConnectionDB = require('./models/user-model');
 const app = express();
 
+require('dotenv').config();
+
 // Connect to database
-dbPool.getConnection((error) => {
-  if (error) {
-    console.log('Connect to database failed...');
-    console.log(error);
-  } else {
-    console.log('Connect to database success...');
-  }
-});
+checkConnectionDB;
 
 // Create web server
-app.listen(4000, () => {
-  console.log('Server running on port 4000');
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
