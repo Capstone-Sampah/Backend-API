@@ -10,6 +10,18 @@ const checkConnectionDB = db.getConnection((error) => {
   }
 });
 
+// Registration new user
+const createNewUser = (body) => {
+  const query = `INSERT INTO users (name, email, phone_number, password) VALUES 
+                (
+                  '${body.name}', '${body.email}', 
+                  '${body.phoneNumber}', '${body.password}'
+                )`;
+
+  return db.execute(query);
+};
+
 module.exports = {
   checkConnectionDB,
+  createNewUser,
 };

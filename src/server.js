@@ -1,8 +1,15 @@
 const express = require('express');
 const checkConnectionDB = require('./models/user-model');
-const app = express();
+const usersRoutes = require('./routes/user-route');
 
+const app = express();
 require('dotenv').config();
+
+// Static Middleware
+app.use(express.json());
+
+// Dynamically Middleware
+app.use('/users', usersRoutes);
 
 // Connect to database
 checkConnectionDB;
