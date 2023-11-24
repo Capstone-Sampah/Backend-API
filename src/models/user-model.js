@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const bcrypt = require('bcrypt');
 
 // Check database connected or not
 const checkConnectionDB = db.getConnection((error) => {
@@ -25,11 +26,11 @@ const isUserRegistered = (body) => {
 };
 
 // Registration new user
-const createNewUser = (body) => {
+const createNewUser = (body, hashedPassword) => {
   const query = `INSERT INTO users (name, email, phoneNumber, password) VALUES 
                 (
                   '${body.name}', '${body.email}', 
-                  '${body.phoneNumber}', '${body.password}'
+                  '${body.phoneNumber}', '${hashedPassword}'
                 )`;
 
   return db.execute(query);
@@ -40,7 +41,7 @@ const authUser = (body) => {
   return new Promise((resolve, reject) => {
     const query = ` SELECT * FROM users WHERE email = '${body.email}'`;
 
-    db.query(query, (err, result) => {
+    db.query(query, async (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -49,12 +50,17 @@ const authUser = (body) => {
           resolve('User data not found');
         } else {
           const user = result[0];
-          if (user.password !== body.password) {
-            // Incorrect password
-            resolve('Incorrect password');
-          } else {
+          const password = user.password;
+
+          // Decrypt password
+          const isPasswordValid = await bcrypt.compare(body.password, password);
+
+          if (isPasswordValid) {
             // User authentication success
             resolve(result);
+          } else {
+            // Incorrect password
+            resolve('Incorrect password');
           }
         }
       }

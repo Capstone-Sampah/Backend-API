@@ -1,4 +1,5 @@
 const UsersModel = require('../models/user-model');
+const bcrypt = require('bcrypt');
 
 // Register
 const register = async (req, res) => {
@@ -27,11 +28,14 @@ const register = async (req, res) => {
     });
   }
 
+  // Encrypt password
+  const hashedPassword = await bcrypt.hash(body.password, 10);
+
   // Add new user account
   try {
-    await UsersModel.createNewUser(body);
+    await UsersModel.createNewUser(body, hashedPassword);
     res.status(201).json({
-      message: 'Congratulation, your account has been successfuly created',
+      message: 'Congratulation, your account has been successfully created',
     });
   } catch (error) {
     res.status(500).json({
