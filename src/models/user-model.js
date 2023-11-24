@@ -68,10 +68,24 @@ const authUser = (body) => {
   });
 };
 
+// Display all users
+const showUsers = () => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT * FROM users';
+    db.query(query, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 
 module.exports = {
   checkConnectionDB,
   isUserRegistered,
   createNewUser,
   authUser,
+  showUsers,
 };
