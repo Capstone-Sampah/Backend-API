@@ -1,6 +1,7 @@
 const UsersModel = require('../models/user-model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const {google} = require('googleapis');
 
 // Register
 const register = async (req, res) => {
@@ -127,8 +128,116 @@ const getUsers = async (req, res) => {
   }
 };
 
+// Register with Google
+const gClientId = process.env.GOOGLE_CLIENT_ID;
+const gClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const redirUrl = 'http://localhost:4000/users/auth/google/callback';
+
+const oauth2Client = new google.auth.OAuth2(gClientId, gClientSecret, redirUrl);
+
+const scopes = [
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+];
+
+const authorizationUrl = oauth2Client.generateAuthUrl({
+  access_type: 'offline',
+  scope: scopes,
+  include_granted_scopes: true,
+});
+
+const authGoogle = (req, res) => {
+  res.redirect(authorizationUrl);
+};
+
+const callbackGoogle = async (req, res) => {
+  const {code} = req.query;
+  const {tokens} = await oauth2Client.getToken(code);
+
+  oauth2Client.setCredentials(tokens);
+
+  const oauth2 = google.oauth2({
+    auth: oauth2Client,
+    version: 'v2',
+  });
+
+  const {data} = await oauth2.userinfo.get();
+  const verifyEmail = await UsersModel.isUserRegistered(data);
+
+  // Check condition
+  if (!data.name || !data.email) {
+    return res.status(400).json({
+      message: 'Failed to register with Google Account. Please enroll again',
+    });
+  }
+
+  if (verifyEmail.length === 1) {
+    return res.status(400).json({
+      message: 'Sorry, email is registered',
+    });
+  }
+
+  try {
+    await UsersModel.createNewUser(data);
+    const checkUser = await UsersModel.isUserRegistered(data);
+    const userInfo = await checkUser.map((item) => ({
+      id: item.id,
+      name: item.name,
+      email: item.email,
+      phoneNumber: item.phoneNumber,
+    }));
+
+    return res.status(201).json({
+      message: 'Congratulation, your account has been successfully created',
+      data: userInfo,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
+// Forgot password
+const setPassword = async (req, res) => {
+  const {idUser} = req.params;
+  const {body} = req;
+
+  // Condition check
+  if (!body.password || !body.confirmPassword) {
+    return res.status(400).json({
+      message: 'You entered data does not match what was instructed in form',
+    });
+  }
+
+  if (body.password !== body.confirmPassword) {
+    return res.status(400).json({
+      message: 'Password and confirmation password not match',
+    });
+  }
+
+  // Encrypt password
+  const hashedPassword = await bcrypt.hash(body.password, 10);
+
+  try {
+    await UsersModel.updateUser(body, idUser, hashedPassword);
+    res.status(200).json({
+      message: 'Your password has been changed successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
 module.exports = {
   register,
+  authGoogle,
+  callbackGoogle,
   login,
   getUsers,
+  setPassword,
 };

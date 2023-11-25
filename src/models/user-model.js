@@ -27,10 +27,13 @@ const isUserRegistered = (body) => {
 
 // Registration new user
 const createNewUser = (body, hashedPassword) => {
+  const phoneNumber = typeof body.phoneNumber === 'undefined' ?
+                      'NULL' : body.phoneNumber;
+
   const query = `INSERT INTO users (name, email, phoneNumber, password) VALUES 
                 (
                   '${body.name}', '${body.email}', 
-                  '${body.phoneNumber}', '${hashedPassword}'
+                  '${phoneNumber}', '${hashedPassword}'
                 )`;
 
   return db.execute(query);
@@ -82,10 +85,34 @@ const showUsers = () => {
   });
 };
 
+// Update user
+const updateUser = (body, idUser, hashedPassword) => {
+  let query = `UPDATE users SET `;
+
+  if (body.name) {
+    query += `name = '${body.name}', `;
+  }
+  if (body.email) {
+    query += `email = '${body.email}', `;
+  }
+  if (body.phoneNumber) {
+    query += `phoneNumber = '${body.phoneNumber}', `;
+  }
+  if (body.password) {
+    query += `password = '${hashedPassword}', `;
+  }
+
+  query = query.slice(0, -2);
+  query += ` WHERE id = ${idUser}`;
+
+  return db.execute(query);
+};
+
 module.exports = {
   checkConnectionDB,
   isUserRegistered,
   createNewUser,
   authUser,
   showUsers,
+  updateUser,
 };
