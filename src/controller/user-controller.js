@@ -131,7 +131,7 @@ const getUsers = async (req, res) => {
 // Register with Google
 const gClientId = process.env.GOOGLE_CLIENT_ID;
 const gClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const redirUrl = 'http://localhost:4000/users/auth/google/callback';
+const redirUrl = `${process.env.SERVICE_LINK}/users/auth/google/callback`;
 
 const oauth2Client = new google.auth.OAuth2(gClientId, gClientSecret, redirUrl);
 

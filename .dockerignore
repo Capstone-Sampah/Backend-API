@@ -1,2 +1,4 @@
-node_modules
 .env
+node_modules
+cloud-sql-restrict-information.txt
+google-oauth-credentials.json
