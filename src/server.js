@@ -2,7 +2,8 @@
 const express = require('express');
 const cors = require('cors');
 const checkConnectionDB = require('./models/user-model');
-const usersRoutes = require('./routes/user-route');
+const userRoutes = require('./routes/user-route');
+const partnerRoutes = require('./routes/partner-route');
 
 const app = express();
 require('dotenv').config();
@@ -17,7 +18,8 @@ app.use(cors({
 }));
 
 // Dynamically Middleware
-app.use('/users', usersRoutes);
+app.use('/users', userRoutes);
+app.use('/partners', partnerRoutes);
 
 // Connect to database
 checkConnectionDB;

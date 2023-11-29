@@ -61,7 +61,7 @@ const login = async (req, res) => {
   // Find user
   try {
     const data = await UsersModel.authUser(body);
-    // Condition check 1
+    // Condition check 2
     if (data === 'User data not found') {
       return res.status(404).json({
         message: 'Sorry, user data not found',
