@@ -4,6 +4,7 @@ const cors = require('cors');
 const checkConnectionDB = require('./models/user-model');
 const userRoutes = require('./routes/user-route');
 const partnerRoutes = require('./routes/partner-route');
+const wastePickupRoutes = require('./routes/waste-pickup-route');
 
 const app = express();
 require('dotenv').config();
@@ -20,6 +21,7 @@ app.use(cors({
 // Dynamically Middleware
 app.use('/users', userRoutes);
 app.use('/partners', partnerRoutes);
+app.use('/wastepickup', wastePickupRoutes);
 
 // Connect to database
 checkConnectionDB;
