@@ -14,7 +14,7 @@ router.get('/auth/google/callback', UserController.callbackGoogle);
 router.post('/login', UserController.login);
 
 // Forgot password
-router.patch('/setpassword/:idUser', UserController.setPassword);
+router.patch('/setpassword/:IdUser', UserController.setPassword);
 
 // List of all users
 router.get('/list', VerifyToken.accessValidation, UserController.getUsers);
