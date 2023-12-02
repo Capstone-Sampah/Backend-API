@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const {getTimeAgoWastePickupCreated} = require('./time-formatting-model');
 
 // Get partner data
 const showOrganicPartner = () => {
@@ -117,6 +118,103 @@ const findWasteTypeById = (typeId) => {
   });
 };
 
+// Get history waste pickup
+const showPendingWastePickup = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = ` SELECT waste_pickup.id, 
+                    partners.name as partner, 
+                    partners_category.name as category, 
+                    waste_pickup.status, 
+                    waste_pickup.date, 
+                    waste_pickup.time,
+                    waste_pickup.created_at FROM waste_pickup 
+                    LEFT JOIN partners ON waste_pickup.partnersId = partners.id
+                    LEFT JOIN partners_category ON 
+                    partners.categoryId = partners_category.id WHERE 
+                    waste_pickup.usersId=${usersId} && 
+                    waste_pickup.status='Dalam antrian'`;
+
+    db.query(query, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        const data = result.map((items) => {
+          const timeAgo = getTimeAgoWastePickupCreated(items.created_at);
+          return {
+            ...items,
+            timeAgo: timeAgo,
+          };
+        });
+        resolve(data);
+      }
+    });
+  });
+};
+
+const showAcceptWastePickup = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT waste_pickup.id, 
+                   partners.name as partner, 
+                   partners_category.name as category, 
+                   waste_pickup.status, 
+                   waste_pickup.date, 
+                   waste_pickup.time,
+                   waste_pickup.created_at FROM waste_pickup 
+                   LEFT JOIN partners ON waste_pickup.partnersId = partners.id
+                   LEFT JOIN partners_category ON 
+                   partners.categoryId = partners_category.id WHERE 
+                   waste_pickup.usersId=${usersId} && 
+                   waste_pickup.status='Sedang Diproses'`;
+
+    db.query(query, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        const data = result.map((items) => {
+          const timeAgo = getTimeAgoWastePickupCreated(items.created_at);
+          return {
+            ...items,
+            timeAgo: timeAgo,
+          };
+        });
+        resolve(data);
+      }
+    });
+  });
+};
+
+const showDeclineWastePickup = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = ` SELECT waste_pickup.id, 
+                    partners.name as partner, 
+                    partners_category.name as category, 
+                    waste_pickup.status, 
+                    waste_pickup.date, 
+                    waste_pickup.time,
+                    waste_pickup.created_at FROM waste_pickup 
+                    LEFT JOIN partners ON waste_pickup.partnersId = partners.id
+                    LEFT JOIN partners_category ON 
+                    partners.categoryId = partners_category.id WHERE 
+                    waste_pickup.usersId=${usersId} && 
+                    waste_pickup.status='Permintaan Ditolak'`;
+
+    db.query(query, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        const data = result.map((items) => {
+          const timeAgo = getTimeAgoWastePickupCreated(items.created_at);
+          return {
+            ...items,
+            timeAgo,
+          };
+        });
+        resolve(data);
+      }
+    });
+  });
+};
+
 module.exports = {
   showOrganicPartner,
   showNonOrganicPartner,
@@ -126,4 +224,7 @@ module.exports = {
   createWasteItems,
   findPartnerById,
   findWasteTypeById,
+  showPendingWastePickup,
+  showAcceptWastePickup,
+  showDeclineWastePickup,
 };

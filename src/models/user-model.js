@@ -86,7 +86,7 @@ const showUsers = () => {
 };
 
 // Update user
-const updateUser = (body, idUser, hashedPassword) => {
+const updateUser = (body, usersId, hashedPassword) => {
   let query = `UPDATE users SET `;
 
   if (body.name) {
@@ -103,7 +103,7 @@ const updateUser = (body, idUser, hashedPassword) => {
   }
 
   query = query.slice(0, -2);
-  query += ` WHERE id = ${idUser}`;
+  query += ` WHERE id = ${usersId}`;
 
   return db.execute(query);
 };

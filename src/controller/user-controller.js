@@ -201,7 +201,7 @@ const callbackGoogle = async (req, res) => {
 
 // Forgot password
 const setPassword = async (req, res) => {
-  const {idUser} = req.params;
+  const {usersId} = req.params;
   const {body} = req;
 
   // Condition check
@@ -221,7 +221,7 @@ const setPassword = async (req, res) => {
   const hashedPassword = await bcrypt.hash(body.password, 10);
 
   try {
-    await UsersModel.updateUser(body, idUser, hashedPassword);
+    UsersModel.updateUser(body, usersId, hashedPassword);
     res.status(200).json({
       message: 'Your password has been changed successfully',
     });

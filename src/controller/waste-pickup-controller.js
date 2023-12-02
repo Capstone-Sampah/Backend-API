@@ -1,11 +1,11 @@
 const WastePickupModel = require('../models/waste-pickup-model');
 
-// Display organic partners
+// Display partners
 const getOrganicPartners = async (req, res) => {
   try {
     const data = await WastePickupModel.showOrganicPartner();
     res.status(200).json({
-      message: 'List of All Organic Partners',
+      message: 'List of organic partners',
       data: data,
     });
   } catch (error) {
@@ -16,12 +16,11 @@ const getOrganicPartners = async (req, res) => {
   }
 };
 
-// Display non-organic partners
 const getNonOrganicPartners = async (req, res) => {
   try {
     const data = await WastePickupModel.showNonOrganicPartner();
     res.status(200).json({
-      message: 'List of All Organic Partners',
+      message: 'List of non organic partners',
       data: data,
     });
   } catch (error) {
@@ -37,7 +36,7 @@ const getOrganicWasteType = async (req, res) => {
   try {
     const data = await WastePickupModel.showOrganicWasteType();
     res.status(200).json({
-      message: 'List of Organic Waste Type',
+      message: 'List of organic waste type',
       data: data,
     });
   } catch (error) {
@@ -52,7 +51,7 @@ const getNonOrganicWasteType = async (req, res) => {
   try {
     const data = await WastePickupModel.showNonOrganicWasteType();
     res.status(200).json({
-      message: 'List of Non Organic Waste Type',
+      message: 'List of non organic waste type',
       data: data,
     });
   } catch (error) {
@@ -82,7 +81,6 @@ const checkWasteTypeExists = async (typeId) => {
     throw (error);
   }
 };
-
 
 // Create waste pickup
 const orderWastePickup = async (req, res) => {
@@ -206,10 +204,62 @@ const orderWastePickup = async (req, res) => {
   }
 };
 
+// Display history waste pickup
+const getPendingWastePickup = async (req, res) => {
+  const {usersId} = req.params;
+  try {
+    const data = await WastePickupModel.showPendingWastePickup(usersId);
+    return res.status(200).json({
+      message: 'List of history waste pickup (Dalam Antrian)',
+      data: data,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
+const getAcceptWastePickup = async (req, res) => {
+  const {usersId} = req.params;
+  try {
+    const data = await WastePickupModel.showAcceptWastePickup(usersId);
+    return res.status(200).json({
+      message: 'List of history waste pickup (Sedang Diproses)',
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
+const getDeclineWastePickup = async (req, res) => {
+  const {usersId} = req.params;
+  try {
+    const data = await WastePickupModel.showDeclineWastePickup(usersId);
+    return res.status(200).json({
+      message: 'List of history waste pickup (Permintaan Ditolak)',
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
 module.exports = {
   getOrganicPartners,
   getNonOrganicPartners,
   getOrganicWasteType,
   getNonOrganicWasteType,
   orderWastePickup,
+  getPendingWastePickup,
+  getAcceptWastePickup,
+  getDeclineWastePickup,
 };
