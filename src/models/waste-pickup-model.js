@@ -122,17 +122,23 @@ const findWasteTypeById = (typeId) => {
 const showPendingWastePickup = (usersId) => {
   return new Promise((resolve, reject) => {
     const query = ` SELECT waste_pickup.id, 
-                    partners.name as partner, 
+                    waste_pickup.phoneNumber,
+                    waste_pickup.province,
+                    waste_pickup.subDistrict,
+                    waste_pickup.village,
+                    waste_pickup.postalCode,
+                    waste_pickup.address,
+                    partners.name as partner,
                     partners_category.name as category, 
                     waste_pickup.status, 
                     waste_pickup.date, 
                     waste_pickup.time,
-                    waste_pickup.created_at FROM waste_pickup 
+                    waste_pickup.createdAt FROM waste_pickup 
                     LEFT JOIN partners ON waste_pickup.partnersId = partners.id
                     LEFT JOIN partners_category ON 
                     partners.categoryId = partners_category.id WHERE 
                     waste_pickup.usersId=${usersId} && 
-                    waste_pickup.status='Dalam antrian'`;
+                    waste_pickup.status='Dalam Antrian'`;
 
     db.query(query, (error, result) => {
       if (error) {
@@ -154,12 +160,18 @@ const showPendingWastePickup = (usersId) => {
 const showAcceptWastePickup = (usersId) => {
   return new Promise((resolve, reject) => {
     const query = `SELECT waste_pickup.id, 
-                   partners.name as partner, 
+                   waste_pickup.phoneNumber,
+                   waste_pickup.province,
+                   waste_pickup.subDistrict,
+                   waste_pickup.village,
+                   waste_pickup.postalCode,
+                   waste_pickup.address,
+                   partners.name as partner,
                    partners_category.name as category, 
                    waste_pickup.status, 
                    waste_pickup.date, 
                    waste_pickup.time,
-                   waste_pickup.created_at FROM waste_pickup 
+                   waste_pickup.createdAt FROM waste_pickup 
                    LEFT JOIN partners ON waste_pickup.partnersId = partners.id
                    LEFT JOIN partners_category ON 
                    partners.categoryId = partners_category.id WHERE 
@@ -186,12 +198,18 @@ const showAcceptWastePickup = (usersId) => {
 const showDeclineWastePickup = (usersId) => {
   return new Promise((resolve, reject) => {
     const query = ` SELECT waste_pickup.id, 
-                    partners.name as partner, 
+                    waste_pickup.phoneNumber,
+                    waste_pickup.province,
+                    waste_pickup.subDistrict,
+                    waste_pickup.village,
+                    waste_pickup.postalCode,
+                    waste_pickup.address,
+                    partners.name as partner,
                     partners_category.name as category, 
                     waste_pickup.status, 
                     waste_pickup.date, 
                     waste_pickup.time,
-                    waste_pickup.created_at FROM waste_pickup 
+                    waste_pickup.createdAt FROM waste_pickup 
                     LEFT JOIN partners ON waste_pickup.partnersId = partners.id
                     LEFT JOIN partners_category ON 
                     partners.categoryId = partners_category.id WHERE 
@@ -215,6 +233,23 @@ const showDeclineWastePickup = (usersId) => {
   });
 };
 
+const showOrderWasteItems = (pickupId) => {
+  return new Promise((resolve, reject) => {
+    const query = ` SELECT waste_type.name, waste_items.quantity 
+                    FROM waste_items INNER JOIN waste_type 
+                    ON waste_items.typeId = waste_type.id 
+                    WHERE waste_items.pickupId = ${pickupId};`;
+
+    db.query(query, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
 module.exports = {
   showOrganicPartner,
   showNonOrganicPartner,
@@ -227,4 +262,5 @@ module.exports = {
   showPendingWastePickup,
   showAcceptWastePickup,
   showDeclineWastePickup,
+  showOrderWasteItems,
 };

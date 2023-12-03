@@ -18,7 +18,7 @@ const getTimeAgoWastePickupCreated = (createdAt) => {
       `${diffInHours} jam yang lalu`;
   } else {
     // Time ago more than 1 days
-    timeAgo = `${diffInDays} yang lalu`;
+    timeAgo = `${diffInDays} hari yang lalu`;
   }
 
   return timeAgo;

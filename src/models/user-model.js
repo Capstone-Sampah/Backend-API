@@ -85,7 +85,7 @@ const showUsers = () => {
   });
 };
 
-// Update user
+// Update user data
 const updateUser = (body, usersId, hashedPassword) => {
   let query = `UPDATE users SET `;
 

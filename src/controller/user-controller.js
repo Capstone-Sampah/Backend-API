@@ -233,6 +233,14 @@ const setPassword = async (req, res) => {
   }
 };
 
+// Logout
+const logout = async (req, res) => {
+  delete req.headers['Authorization'];
+  return res.status(200).json({
+    message: 'You have successfully logged out',
+  });
+};
+
 module.exports = {
   register,
   authGoogle,
@@ -240,4 +248,5 @@ module.exports = {
   login,
   getUsers,
   setPassword,
+  logout,
 };

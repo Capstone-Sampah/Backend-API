@@ -183,8 +183,14 @@ const orderWastePickup = async (req, res) => {
           const pointKg = wasteType.pointKg;
           const totalKg = Math.floor(quantity / wasteType.totalKg);
 
-          const itemPoint = pointKg * totalKg;
-          totalPoints += itemPoint;
+          if (wasteType.totalKg === 2 && quantity >= 2) {
+            // Waste type ('Sisa-sisa makanan')
+            const itemPoint = pointKg * totalKg;
+            totalPoints += itemPoint;
+          } else if (wasteType.totalKg === 1 && quantity >= 1) {
+            const itemPoint = pointKg * quantity;
+            totalPoints += itemPoint;
+          }
         }
       }
       return totalPoints;
@@ -208,10 +214,32 @@ const orderWastePickup = async (req, res) => {
 const getPendingWastePickup = async (req, res) => {
   const {usersId} = req.params;
   try {
-    const data = await WastePickupModel.showPendingWastePickup(usersId);
+    const orders = await WastePickupModel.showPendingWastePickup(usersId);
+    const detailOrders = await Promise.all(
+        orders.map(async (item) => {
+          const wasteItems = await
+          WastePickupModel.showOrderWasteItems(item.id);
+          return {
+            pickupId: item.id,
+            phoneNumber: item.phoneNumber,
+            province: item.province,
+            subDistrict: item.subDistrict,
+            village: item.village,
+            postalCode: item.postalCode,
+            address: item.address,
+            date: item.date,
+            time: item.time,
+            note: item.note,
+            createdAt: item.created_at,
+            status: item.status,
+            timeAgo: item.timeAgo,
+            wasteItems: wasteItems,
+          };
+        }),
+    );
     return res.status(200).json({
       message: 'List of history waste pickup (Dalam Antrian)',
-      data: data,
+      data: detailOrders,
     });
   } catch (error) {
     return res.status(400).json({
@@ -224,10 +252,34 @@ const getPendingWastePickup = async (req, res) => {
 const getAcceptWastePickup = async (req, res) => {
   const {usersId} = req.params;
   try {
-    const data = await WastePickupModel.showAcceptWastePickup(usersId);
+    const orders = await WastePickupModel.showAcceptWastePickup(usersId);
+    const detailOrders = await Promise.all(
+        orders.map(async (item) => {
+          const wasteItems = await
+          WastePickupModel.showOrderWasteItems(item.id);
+          return {
+            pickupId: item.id,
+            phoneNumber: item.phoneNumber,
+            province: item.province,
+            subDistrict: item.subDistrict,
+            village: item.village,
+            postalCode: item.postalCode,
+            address: item.address,
+            category: item.category,
+            partner: item.partner,
+            date: item.date,
+            time: item.time,
+            note: item.note,
+            status: item.status,
+            timeAgo: item.timeAgo,
+            wasteItems: wasteItems,
+            createdAt: item.createdAt,
+          };
+        }),
+    );
     return res.status(200).json({
       message: 'List of history waste pickup (Sedang Diproses)',
-      data: data,
+      data: detailOrders,
     });
   } catch (error) {
     return res.status(500).json({
@@ -240,10 +292,34 @@ const getAcceptWastePickup = async (req, res) => {
 const getDeclineWastePickup = async (req, res) => {
   const {usersId} = req.params;
   try {
-    const data = await WastePickupModel.showDeclineWastePickup(usersId);
+    const orders = await WastePickupModel.showDeclineWastePickup(usersId);
+    const detailOrders = await Promise.all(
+        orders.map(async (item) => {
+          const wasteItems = await
+          WastePickupModel.showOrderWasteItems(item.id);
+          return {
+            pickupId: item.id,
+            phoneNumber: item.phoneNumber,
+            province: item.province,
+            subDistrict: item.subDistrict,
+            village: item.village,
+            postalCode: item.postalCode,
+            address: item.address,
+            category: item.category,
+            partner: item.partner,
+            date: item.date,
+            time: item.time,
+            note: item.note,
+            status: item.status,
+            timeAgo: item.timeAgo,
+            wasteItems: wasteItems,
+            createdAt: item.createdAt,
+          };
+        }),
+    );
     return res.status(200).json({
       message: 'List of history waste pickup (Permintaan Ditolak)',
-      data: data,
+      data: detailOrders,
     });
   } catch (error) {
     return res.status(500).json({

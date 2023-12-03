@@ -23,6 +23,13 @@ app.use('/users', userRoutes);
 app.use('/partners', partnerRoutes);
 app.use('/wastepickup', wastePickupRoutes);
 
+// Index route
+app.get('/', (req, res) => {
+  const message = `Hello and welcome to EcoBin API ♻️🗑️!`;
+  console.log('Index route accessed');
+  res.status(200).send(`<h2>${message}</h2>`);
+});
+
 // Connect to database
 checkConnectionDB;
 

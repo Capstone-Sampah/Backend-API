@@ -14,7 +14,11 @@ router.get('/auth/google/callback', UserController.callbackGoogle);
 router.post('/login', UserController.login);
 
 // Forgot password
-router.patch('/setpassword/:usersId', UserController.setPassword);
+router.patch('/setpassword/:usersId',
+    VerifyToken.accessValidation, UserController.setPassword);
+
+// Logout
+router.delete('/logout', VerifyToken.accessValidation, UserController.logout);
 
 // List of all users
 router.get('/list', VerifyToken.accessValidation, UserController.getUsers);
