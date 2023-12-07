@@ -23,4 +23,7 @@ router.delete('/logout', VerifyToken.accessValidation, UserController.logout);
 // List all users
 router.get('/list', VerifyToken.accessValidation, UserController.getUsers);
 
+// List user activity
+router.get('/activity/:usersId', UserController.getUserActivity);
+
 module.exports = router;

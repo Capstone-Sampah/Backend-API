@@ -11,8 +11,8 @@ const authPartner = (body) => {
                           partners.password,
                           partners.phoneNumber, 
                           partners.province, 
-                          partners.regency, 
-                          partners.district, 
+                          partners.subDistrict, 
+                          partners.village, 
                           partners.postalCode, 
                           partners.address, 
                           partners.createdAt 

@@ -233,6 +233,23 @@ const setPassword = async (req, res) => {
   }
 };
 
+// Display user activity
+const getUserActivity = async (req, res) => {
+  const {usersId} = req.params;
+  try {
+    const data = await UsersModel.showUserActivity(usersId);
+    return res.status(200).json({
+      message: 'List of User Activity',
+      data: data,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
 // Logout
 const logout = async (req, res) => {
   delete req.headers['Authorization'];
@@ -247,6 +264,7 @@ module.exports = {
   callbackGoogle,
   login,
   getUsers,
+  getUserActivity,
   setPassword,
   logout,
 };

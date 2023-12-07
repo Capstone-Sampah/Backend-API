@@ -108,6 +108,22 @@ const updateUser = (body, usersId, hashedPassword) => {
   return db.execute(query);
 };
 
+// Display user activity
+const showUserActivity = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = ` SELECT point, sendWaste, managedWaste 
+                    FROM users WHERE id=${usersId}`;
+
+    db.query(query, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
 module.exports = {
   checkConnectionDB,
   isUserRegistered,
@@ -115,4 +131,5 @@ module.exports = {
   authUser,
   showUsers,
   updateUser,
+  showUserActivity,
 };
