@@ -5,6 +5,7 @@ const checkConnectionDB = require('./models/user-model');
 const userRoutes = require('./routes/user-route');
 const partnerRoutes = require('./routes/partner-route');
 const wastePickupRoutes = require('./routes/waste-pickup-route');
+const voucherRoutes = require('./routes/voucher-route');
 
 const app = express();
 require('dotenv').config();
@@ -22,6 +23,7 @@ app.use(cors({
 app.use('/users', userRoutes);
 app.use('/partners', partnerRoutes);
 app.use('/wastepickup', wastePickupRoutes);
+app.use('/vouchers', voucherRoutes);
 
 // Index route
 app.get('/', (req, res) => {

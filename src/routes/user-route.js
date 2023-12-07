@@ -20,7 +20,7 @@ router.patch('/setpassword/:usersId',
 // Logout
 router.delete('/logout', VerifyToken.accessValidation, UserController.logout);
 
-// List of all users
+// List all users
 router.get('/list', VerifyToken.accessValidation, UserController.getUsers);
 
 module.exports = router;
