@@ -111,7 +111,36 @@ const redeemVoucher = async (req, res) => {
   }
 };
 
+// Display voucher receipts
+const getVoucherReceipts = async (req, res) => {
+  const {usersId} = req.params;
+
+  try {
+    const user = await VoucherModel.findUserById(usersId);
+
+    // Check condition
+    if (!user.length) {
+      return res.status(400).json({
+        message: 'Sorry, user data not found',
+      });
+    }
+
+    const data = await VoucherModel.showVoucherReceipt(usersId);
+
+    return res.status(200).json({
+      message: 'List of voucher receipts',
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
 module.exports = {
   getVouchers,
   redeemVoucher,
+  getVoucherReceipts,
 };

@@ -116,6 +116,31 @@ const showNewVoucherReceipt = (receiptId) => {
   });
 };
 
+// Display receipt vouchers owned by user
+const showVoucherReceipt = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT vouchers_receipt.id,
+                          users.name as name,
+                          vouchers.name as voucher,
+                          vouchers_receipt.exchangeToken,
+                          vouchers_receipt.createdAt
+                   FROM vouchers_receipt 
+                   LEFT JOIN users ON 
+                   vouchers_receipt.usersId = users.id
+                   LEFT JOIN vouchers ON 
+                   vouchers_receipt.vouchersId = vouchers.id
+                   WHERE vouchers_receipt.id = ?;`;
+
+    db.query(query, [usersId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
 module.exports = {
   showVoucher,
   findVoucherById,
@@ -124,4 +149,5 @@ module.exports = {
   setVoucherTotal,
   createVoucherReceipt,
   showNewVoucherReceipt,
+  showVoucherReceipt,
 };
