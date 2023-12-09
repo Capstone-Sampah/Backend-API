@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const WastePickupController = require('../controller/waste-pickup-controller');
+const WastePickupController = require('../controllers/waste-pickup-controller');
 
 // List of organic partners
 router.get('/organicpartner', WastePickupController.getOrganicPartners);

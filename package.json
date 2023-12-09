@@ -5,8 +5,9 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/server.js",
-    "test": "nodemon src/server.js"
+    "lint": "eslint src/",
+    "test": "nodemon src/server.js",
+    "start": "node src/server.js"
   },
   "author": "Dzaru Rizky Fathan Fortuna",
   "license": "ISC",
@@ -19,7 +20,8 @@
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.29.4",
     "mysql2": "^3.6.3",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "uid-safe": "^2.1.5"
   },
   "devDependencies": {
     "eslint": "^8.54.0",

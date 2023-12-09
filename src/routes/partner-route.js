@@ -1,5 +1,5 @@
 const express = require('express');
-const PartnerController = require('../controller/partner-controller');
+const PartnerController = require('../controllers/partner-controller');
 const VerifyToken = require('../middleware/verify-token');
 const router = express.Router();
 
