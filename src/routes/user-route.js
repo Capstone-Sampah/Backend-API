@@ -3,27 +3,23 @@ const UserController = require('../controllers/user-controller');
 const VerifyToken = require('../middleware/verify-token');
 const router = express.Router();
 
-// Register
+// User registration
 router.post('/register', UserController.register);
 
-// Register with Google
-router.get('/auth/google', UserController.authGoogle);
-router.get('/auth/google/callback', UserController.callbackGoogle);
-
-// Login
+// User login
 router.post('/login', UserController.login);
 
-// Forgot password
-router.patch('/setpassword/:usersId',
-    VerifyToken.accessValidation, UserController.setPassword);
+// Display user activity
+router.get('/activity/:usersId', UserController.getUserActivity);
+
+// Edit user profile
+router.patch('/editprofile/:usersId', UserController.editProfile);
+
+// Reset user password
+router.patch('/resetpassword/:usersId',
+    VerifyToken.accessValidation, UserController.resetPassword);
 
 // Logout
-router.delete('/logout', VerifyToken.accessValidation, UserController.logout);
-
-// List all users
-router.get('/list', VerifyToken.accessValidation, UserController.getUsers);
-
-// List user activity
-router.get('/activity/:usersId', UserController.getUserActivity);
+router.delete('/logout', UserController.logout);
 
 module.exports = router;

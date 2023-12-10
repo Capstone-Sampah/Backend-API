@@ -1,22 +1,20 @@
-const UsersModel = require('../models/user-model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const {google} = require('googleapis');
+const UsersModel = require('../models/user-model');
+const {blacklistedTokens} = require('../middleware/verify-token');
 
-// Register
+// User registration
 const register = async (req, res) => {
   const {body} = req;
-  const verifyEmail = await UsersModel.isUserRegistered(body);
 
-  // Condition check
-  if (
-    !body.name || !body.email || !body.phoneNumber ||
-    !body.password || !body.confirmPassword
-  ) {
+  // Check condition
+  if (!body.name || !body.email || !body.phoneNumber || !body.password) {
     return res.status(400).json({
       message: 'You entered data does not match what was instructed in form',
     });
   }
+
+  const verifyEmail = await UsersModel.isUserRegistered(body);
 
   if (verifyEmail.length === 1) {
     return res.status(400).json({
@@ -24,18 +22,12 @@ const register = async (req, res) => {
     });
   }
 
-  if (body.password !== body.confirmPassword) {
-    return res.status(400).json({
-      message: 'Password and confirmation password not match',
-    });
-  }
-
   // Encrypt password
   const hashedPassword = await bcrypt.hash(body.password, 10);
 
-  // Add new user account
   try {
-    await UsersModel.createNewUser(body, hashedPassword);
+    // Add new user account
+    UsersModel.createNewUserViaApp(body, hashedPassword);
     res.status(201).json({
       message: 'Congratulation, your account has been successfully created',
     });
@@ -47,28 +39,28 @@ const register = async (req, res) => {
   }
 };
 
-// Login
+// User login
 const login = async (req, res) => {
   const {body} = req;
 
-  // Condition check 1
+  // Check condition 1
   if (!body.email || !body.password) {
     return res.status(400).json({
       message: 'You entered data does not match what was instructed in form',
     });
   }
 
-  // Find user
   try {
+    // Find user
     const data = await UsersModel.authUser(body);
-    // Condition check 2
+    // Check condition 2
     if (data === 'User data not found') {
       return res.status(404).json({
         message: 'Sorry, user data not found',
       });
     } else if (data === 'Incorrect password') {
       return res.status(401).json({
-        message: 'The password you entered is incorrect. Please try again',
+        message: 'The password you entered is incorrect. Please try again !!',
       });
     } else {
       const filterData = data.map((item) => ({
@@ -104,107 +96,20 @@ const login = async (req, res) => {
   }
 };
 
-// Display all users
-const getUsers = async (req, res) => {
-  try {
-    const data = await UsersModel.showUsers();
-    const filterData = data.map((item) => ({
-      id: item.id,
-      name: item.name,
-      email: item.email,
-      phoneNumber: item.phoneNumber,
-      createdAt: item.createdAt,
-    }));
-
-    res.status(200).json({
-      message: 'List of all users',
-      data: filterData,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Internal server error',
-      errorMessage: error,
-    });
-  }
-};
-
-// Register with Google
-const gClientId = process.env.GOOGLE_CLIENT_ID;
-const gClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const redirUrl = `${process.env.SERVICE_LINK}/users/auth/google/callback`;
-
-const oauth2Client = new google.auth.OAuth2(gClientId, gClientSecret, redirUrl);
-
-const scopes = [
-  'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/userinfo.profile',
-];
-
-const authorizationUrl = oauth2Client.generateAuthUrl({
-  access_type: 'offline',
-  scope: scopes,
-  include_granted_scopes: true,
-});
-
-const authGoogle = (req, res) => {
-  res.redirect(authorizationUrl);
-};
-
-const callbackGoogle = async (req, res) => {
-  const {code} = req.query;
-  const {tokens} = await oauth2Client.getToken(code);
-
-  oauth2Client.setCredentials(tokens);
-
-  const oauth2 = google.oauth2({
-    auth: oauth2Client,
-    version: 'v2',
-  });
-
-  const {data} = await oauth2.userinfo.get();
-  const verifyEmail = await UsersModel.isUserRegistered(data);
-
-  // Check condition
-  if (!data.name || !data.email) {
-    return res.status(400).json({
-      message: 'Failed to register with Google Account. Please enroll again',
-    });
-  }
-
-  if (verifyEmail.length === 1) {
-    return res.status(400).json({
-      message: 'Sorry, email is registered',
-    });
-  }
-
-  try {
-    await UsersModel.createNewUser(data);
-    const checkUser = await UsersModel.isUserRegistered(data);
-    const userInfo = await checkUser.map((item) => ({
-      id: item.id,
-      name: item.name,
-      email: item.email,
-      phoneNumber: item.phoneNumber,
-    }));
-
-    return res.status(201).json({
-      message: 'Congratulation, your account has been successfully created',
-      data: userInfo,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: 'Internal server error',
-      errorMessage: error,
-    });
-  }
-};
-
-// Forgot password
-const setPassword = async (req, res) => {
+// Reset user password
+const resetPassword = async (req, res) => {
   const {usersId} = req.params;
   const {body} = req;
 
-  // Condition check
+  // Check condition
+  const user = await UsersModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   if (!body.password || !body.confirmPassword) {
     return res.status(400).json({
       message: 'You entered data does not match what was instructed in form',
@@ -217,11 +122,8 @@ const setPassword = async (req, res) => {
     });
   }
 
-  // Encrypt password
-  const hashedPassword = await bcrypt.hash(body.password, 10);
-
   try {
-    UsersModel.updateUser(body, usersId, hashedPassword);
+    UsersModel.updateUser(body, usersId);
     res.status(200).json({
       message: 'Your password has been changed successfully',
     });
@@ -236,10 +138,19 @@ const setPassword = async (req, res) => {
 // Display user activity
 const getUserActivity = async (req, res) => {
   const {usersId} = req.params;
+
+  // Check condition
+  const user = await UsersModel.findUserById(usersId);
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   try {
     const data = await UsersModel.showUserActivity(usersId);
     return res.status(200).json({
-      message: 'List of User Activity',
+      message: 'List of user activity',
       data: data,
     });
   } catch (error) {
@@ -250,21 +161,71 @@ const getUserActivity = async (req, res) => {
   }
 };
 
+// Edit user profile
+const editProfile = async (req, res) => {
+  const {usersId} = req.params;
+  const {body} = req;
+
+  // Check condition
+  const user = await UsersModel.findUserById(usersId);
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
+  if (!body.name || !body.email || !body.phoneNumber) {
+    return res.status(400).json({
+      message: 'You entered data does not match what was instructed in form',
+    });
+  }
+
+  try {
+    await UsersModel.updateUser(body, usersId);
+    return res.status(200).json({
+      message: 'Your profile has been updated successfully',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+    });
+  }
+};
+
 // Logout
 const logout = async (req, res) => {
-  delete req.headers['Authorization'];
-  return res.status(200).json({
-    message: 'You have successfully logged out',
-  });
+  const {authorization} = req.headers;
+
+  // Check condition
+  if (!authorization) {
+    return res.status(401).json({
+      message: `You don't have token`,
+    });
+  }
+
+  const token = authorization.split(' ')[1];
+
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+
+    // Add token to blacklist tokens
+    blacklistedTokens.push(token);
+
+    res.status(200).json({
+      message: 'You have successfully logged out',
+    });
+  } catch (error) {
+    return res.status(401).json({
+      message: 'Invalid access token',
+    });
+  }
 };
 
 module.exports = {
   register,
-  authGoogle,
-  callbackGoogle,
   login,
-  getUsers,
   getUserActivity,
-  setPassword,
+  editProfile,
+  resetPassword,
   logout,
 };

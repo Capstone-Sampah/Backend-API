@@ -4,18 +4,18 @@ const bcrypt = require('bcrypt');
 // Check database connected or not
 const checkConnectionDB = db.getConnection((error) => {
   if (error) {
-    console.log('Connect to database failed....');
+    console.log('Connect to database failed...');
     console.log(error);
   } else {
-    console.log('Connect to database success....');
+    console.log('Connect to database success...');
   }
 });
 
 // Check user is registered or not
 const isUserRegistered = (body) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT * FROM users WHERE email = '${body.email}'`;
-    db.query(query, (err, result) => {
+    const query = 'SELECT * FROM users WHERE email = ?';
+    db.query(query, [body.email], (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -25,26 +25,33 @@ const isUserRegistered = (body) => {
   });
 };
 
-// Registration new user
-const createNewUser = (body, hashedPassword) => {
-  const phoneNumber = typeof body.phoneNumber === 'undefined' ?
-                      'NULL' : body.phoneNumber;
+// User registration through application
+const createNewUserViaApp = (body, hashedPassword) => {
+  return new Promise((resolve, reject) => {
+    const query = `INSERT INTO users (name, email, phoneNumber, password) 
+                   VALUES (?, ?, ?, ?)`;
 
-  const query = `INSERT INTO users (name, email, phoneNumber, password) VALUES 
-                (
-                  '${body.name}', '${body.email}', 
-                  '${phoneNumber}', '${hashedPassword}'
-                )`;
-
-  return db.execute(query);
+    db.query(query, [
+      body.name,
+      body.email,
+      body.phoneNumber,
+      hashedPassword,
+    ], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
 };
 
-// User login
+// Authentication user to connect to application
 const authUser = (body) => {
   return new Promise((resolve, reject) => {
-    const query = ` SELECT * FROM users WHERE email = '${body.email}'`;
+    const query = 'SELECT * FROM users WHERE email = ?';
 
-    db.query(query, async (err, result) => {
+    db.query(query, [body.email], async (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -59,7 +66,7 @@ const authUser = (body) => {
           const isPasswordValid = await bcrypt.compare(body.password, password);
 
           if (isPasswordValid) {
-            // User authentication success
+            // Success authentication
             resolve(result);
           } else {
             // Incorrect password
@@ -71,11 +78,30 @@ const authUser = (body) => {
   });
 };
 
-// Display all users
-const showUsers = () => {
-  return new Promise((resolve, reject) => {
-    const query = 'SELECT * FROM users';
-    db.query(query, (error, result) => {
+// Update user data
+const updateUser = (body, usersId) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `UPDATE users SET `;
+
+    if (body.name) {
+      query += `name = '${body.name}', `;
+    }
+    if (body.email) {
+      query += `email = '${body.email}', `;
+    }
+    if (body.phoneNumber) {
+      query += `phoneNumber = '${body.phoneNumber}', `;
+    }
+    if (body.password) {
+      // Encrypt password
+      const hashedPassword = await bcrypt.hash(body.password, 10);
+      query += `password = '${hashedPassword}', `;
+    }
+
+    query = query.slice(0, -2);
+    query += ` WHERE id = ?`;
+
+    db.query(query, [usersId], (error, result) => {
       if (error) {
         reject(error);
       } else {
@@ -85,36 +111,28 @@ const showUsers = () => {
   });
 };
 
-// Update user data
-const updateUser = (body, usersId, hashedPassword) => {
-  let query = `UPDATE users SET `;
-
-  if (body.name) {
-    query += `name = '${body.name}', `;
-  }
-  if (body.email) {
-    query += `email = '${body.email}', `;
-  }
-  if (body.phoneNumber) {
-    query += `phoneNumber = '${body.phoneNumber}', `;
-  }
-  if (body.password) {
-    query += `password = '${hashedPassword}', `;
-  }
-
-  query = query.slice(0, -2);
-  query += ` WHERE id = ${usersId}`;
-
-  return db.execute(query);
-};
-
 // Display user activity
 const showUserActivity = (usersId) => {
   return new Promise((resolve, reject) => {
     const query = ` SELECT point, sendWaste, managedWaste 
-                    FROM users WHERE id=${usersId}`;
+                    FROM users WHERE id= ?`;
 
-    db.query(query, (error, result) => {
+    db.query(query, [usersId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+// Ensure input user ID matches with user ID in the table
+const findUserById = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT * FROM users WHERE id = ?';
+
+    db.query(query, [usersId], (error, result) => {
       if (error) {
         reject(error);
       } else {
@@ -127,9 +145,9 @@ const showUserActivity = (usersId) => {
 module.exports = {
   checkConnectionDB,
   isUserRegistered,
-  createNewUser,
+  createNewUserViaApp,
   authUser,
-  showUsers,
   updateUser,
   showUserActivity,
+  findUserById,
 };
