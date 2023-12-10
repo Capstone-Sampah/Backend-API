@@ -10,13 +10,13 @@ router.post('/register', UserController.register);
 router.post('/login', UserController.login);
 
 // Display user activity
-router.get('/activity/:usersId', UserController.getUserActivity);
+router.get('/:usersId/activity', UserController.getUserActivity);
 
 // Edit user profile
-router.patch('/editprofile/:usersId', UserController.editProfile);
+router.patch('/:usersId/editprofile', UserController.editProfile);
 
 // Reset user password
-router.patch('/resetpassword/:usersId',
+router.patch('/:usersId/resetpassword',
     VerifyToken.accessValidation, UserController.resetPassword);
 
 // Logout

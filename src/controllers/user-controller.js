@@ -27,7 +27,7 @@ const register = async (req, res) => {
 
   try {
     // Add new user account
-    UsersModel.createNewUserViaApp(body, hashedPassword);
+    UsersModel.createNewUser(body, hashedPassword);
     res.status(201).json({
       message: 'Congratulation, your account has been successfully created',
     });
@@ -96,45 +96,6 @@ const login = async (req, res) => {
   }
 };
 
-// Reset user password
-const resetPassword = async (req, res) => {
-  const {usersId} = req.params;
-  const {body} = req;
-
-  // Check condition
-  const user = await UsersModel.findUserById(usersId);
-
-  if (!user.length) {
-    return res.status(404).json({
-      message: 'Sorry, user data not found',
-    });
-  }
-
-  if (!body.password || !body.confirmPassword) {
-    return res.status(400).json({
-      message: 'You entered data does not match what was instructed in form',
-    });
-  }
-
-  if (body.password !== body.confirmPassword) {
-    return res.status(400).json({
-      message: 'Password and confirmation password not match',
-    });
-  }
-
-  try {
-    UsersModel.updateUser(body, usersId);
-    res.status(200).json({
-      message: 'Your password has been changed successfully',
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Internal server error',
-      errorMessage: error,
-    });
-  }
-};
-
 // Display user activity
 const getUserActivity = async (req, res) => {
   const {usersId} = req.params;
@@ -192,6 +153,45 @@ const editProfile = async (req, res) => {
   }
 };
 
+// Reset user password
+const resetPassword = async (req, res) => {
+  const {usersId} = req.params;
+  const {body} = req;
+
+  // Check condition
+  const user = await UsersModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
+  if (!body.password || !body.confirmPassword) {
+    return res.status(400).json({
+      message: 'You entered data does not match what was instructed in form',
+    });
+  }
+
+  if (body.password !== body.confirmPassword) {
+    return res.status(400).json({
+      message: 'Password and confirmation password not match',
+    });
+  }
+
+  try {
+    UsersModel.updateUser(body, usersId);
+    res.status(200).json({
+      message: 'Your password has been changed successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Internal server error',
+      errorMessage: error,
+    });
+  }
+};
+
 // Logout
 const logout = async (req, res) => {
   const {authorization} = req.headers;
@@ -203,12 +203,11 @@ const logout = async (req, res) => {
     });
   }
 
-  const token = authorization.split(' ')[1];
-
   try {
+    const token = authorization.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET);
 
-    // Add token to blacklist tokens
+    // Add token to blacklisted tokens
     blacklistedTokens.push(token);
 
     res.status(200).json({
@@ -216,7 +215,7 @@ const logout = async (req, res) => {
     });
   } catch (error) {
     return res.status(401).json({
-      message: 'Invalid access token',
+      message: 'Invalid access token !!',
     });
   }
 };

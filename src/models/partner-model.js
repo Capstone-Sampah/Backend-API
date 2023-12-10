@@ -5,23 +5,23 @@ const bcrypt = require('bcrypt');
 const authPartner = (body) => {
   return new Promise((resolve, reject) => {
     const query = `SELECT partners.id, 
-                          partners.name, 
-                          partners_category.name AS category, 
-                          partners.email, 
-                          partners.password,
-                          partners.phoneNumber, 
-                          partners.province, 
-                          partners.subDistrict, 
-                          partners.village, 
-                          partners.postalCode, 
-                          partners.address, 
-                          partners.createdAt 
-                          FROM partners 
-                          INNER JOIN partners_category ON 
-                          partners.categoryId=partners_category.id 
-                          WHERE partners.email = '${body.email}';`;
+                   partners.name, 
+                   partners_category.name AS category, 
+                   partners.email, 
+                   partners.password,
+                   partners.phoneNumber, 
+                   partners.province, 
+                   partners.subDistrict, 
+                   partners.village, 
+                   partners.postalCode, 
+                   partners.address, 
+                   partners.createdAt 
+                   FROM partners 
+                   INNER JOIN partners_category ON 
+                   partners.categoryId=partners_category.id 
+                   WHERE partners.email = ?;`;
 
-    db.query(query, async (err, result) => {
+    db.query(query, [body.email], async (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -32,11 +32,11 @@ const authPartner = (body) => {
           const partner = result[0];
           const password = partner.password;
 
-          // Decyrpt Password
+          // Decyrpt password
           const isPasswordValid = await bcrypt.compare(body.password, password);
 
           if (isPasswordValid) {
-            // Partner authentication success
+            // Success authentication
             resolve(result);
           } else {
             // Incorrect password
@@ -48,10 +48,26 @@ const authPartner = (body) => {
   });
 };
 
-// Get waste pickup
-const showWastePickup = (partnersId) => {
+// Ensure input partner ID matches with partner ID in the table
+const findPartnerById = (partnersId) => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT * FROM partners WHERE id = ?';
+
+    db.query(query, [partnersId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+// Display list order for waste pickup
+const showOrderWastePickup = (partnersId) => {
   return new Promise((resolve, reject) => {
     const query = `SELECT waste_pickup.id,
+                   waste_pickup.status,
                    users.name,
                    waste_pickup.phoneNumber,
                    waste_pickup.province,
@@ -61,13 +77,14 @@ const showWastePickup = (partnersId) => {
                    waste_pickup.address,
                    waste_pickup.date,
                    waste_pickup.time,
-                   waste_pickup.note
+                   waste_pickup.note,
+                   waste_pickup.createdAt
                    FROM waste_pickup 
                    LEFT JOIN users ON users.id = waste_pickup.usersId 
-                   WHERE waste_pickup.partnersId=${partnersId} && 
+                   WHERE waste_pickup.partnersId = ? && 
                    waste_pickup.status='Dalam Antrian';`;
 
-    db.query(query, async (error, result) => {
+    db.query(query, [partnersId], (error, result) => {
       if (error) {
         reject(error);
       } else {
@@ -77,59 +94,11 @@ const showWastePickup = (partnersId) => {
   });
 };
 
-// Get waste items
-const showWasteItems = (pickupId) => {
-  return new Promise((resolve, reject) => {
-    const query = `SELECT waste_items.typeId, waste_type.name, 
-                   waste_items.quantity FROM waste_items INNER JOIN 
-                   waste_type ON waste_items.typeId = waste_type.id 
-                   WHERE waste_items.pickupId = ${pickupId};`;
-
-    db.query(query, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
-
-// Update user 'waste_pickup' status
-const declineWastePickup = (pickupId) => {
-  return new Promise((resolve, reject) => {
-    const query = `UPDATE waste_pickup SET status='Permintaan Ditolak' 
-                   WHERE id = ${pickupId}`;
-    db.query(query, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
-
-const acceptWastePickup = (pickupId, points) => {
-  return new Promise((resolve, reject) => {
-    const query = `UPDATE waste_pickup SET 
-                   status = 'Sedang Diproses', totalPoints = ${points} 
-                   WHERE id = ${pickupId}`;
-
-    db.query(query, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
-
-// Get decline waste pickup
+// Display list decline for waste pickup
 const showDeclineWastePickup = (partnersId) => {
   return new Promise((resolve, reject) => {
     const query = ` SELECT waste_pickup.id,
+                    waste_pickup.status,
                     users.name,
                     waste_pickup.phoneNumber,
                     waste_pickup.province,
@@ -140,13 +109,66 @@ const showDeclineWastePickup = (partnersId) => {
                     waste_pickup.date,
                     waste_pickup.time,
                     waste_pickup.note,
-                    waste_pickup.status
+                    waste_pickup.createdAt
                     FROM waste_pickup 
                     LEFT JOIN users ON users.id = waste_pickup.usersId 
-                    WHERE waste_pickup.partnersId=${partnersId} && 
+                    WHERE waste_pickup.partnersId = ? && 
                     waste_pickup.status='Permintaan Ditolak';`;
 
-    db.query(query, async (error, result) => {
+    db.query(query, [partnersId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+// Display list waste items in order of waste pickup
+const showWasteItems = (pickupId) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT waste_items.typeId, 
+                   waste_type.name, 
+                   waste_items.quantity 
+                   FROM waste_items 
+                   INNER JOIN waste_type ON waste_items.typeId = waste_type.id 
+                   WHERE waste_items.pickupId = ?;`;
+
+    db.query(query, [pickupId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+// Accept user order for waste pickup
+const acceptWastePickup = (pickupId, points) => {
+  return new Promise((resolve, reject) => {
+    const query = `UPDATE waste_pickup SET 
+                   status = 'Sedang Diproses', totalPoints = ? 
+                   WHERE id = ?`;
+
+    db.query(query, [points, pickupId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+// Decline user order for waste pickup
+const declineWastePickup = (pickupId) => {
+  return new Promise((resolve, reject) => {
+    const query = `UPDATE waste_pickup SET status='Permintaan Ditolak' 
+                   WHERE id = ?`;
+
+    db.query(query, [pickupId], (error, result) => {
       if (error) {
         reject(error);
       } else {
@@ -157,30 +179,29 @@ const showDeclineWastePickup = (partnersId) => {
 };
 
 // Update partner data
-const updatePartner = (body, partnersId, hashedPassword) => {
-  return new Promise((resolve, reject) => {
+const updatePartner = (body, partnersId) => {
+  return new Promise(async (resolve, reject) => {
     let query = `UPDATE partners SET `;
 
     if (body.name) {
       query += `name = '${body.name}', `;
     }
-
     if (body.email) {
       query += `email = '${body.email}', `;
     }
-
     if (body.phoneNumber) {
-      query += `phoneNumber = '${phoneNumber}', `;
+      query += `phoneNumber = '${body.phoneNumber}', `;
     }
-
     if (body.password) {
+      // Encrypt password
+      const hashedPassword = await bcrypt.hash(body.password, 10);
       query += `password = '${hashedPassword}', `;
     }
 
     query = query.slice(0, -2);
-    query += ` WHERE id = ${partnersId}`;
+    query += ` WHERE id = ?`;
 
-    db.query(query, (error, result) => {
+    db.query(query, [partnersId], (error, result) => {
       if (error) {
         reject(error);
       } else {
@@ -192,10 +213,11 @@ const updatePartner = (body, partnersId, hashedPassword) => {
 
 module.exports = {
   authPartner,
-  showWastePickup,
-  showWasteItems,
-  declineWastePickup,
-  acceptWastePickup,
+  findPartnerById,
+  showOrderWastePickup,
   showDeclineWastePickup,
+  showWasteItems,
+  acceptWastePickup,
+  declineWastePickup,
   updatePartner,
 };

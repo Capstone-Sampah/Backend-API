@@ -25,8 +25,8 @@ const isUserRegistered = (body) => {
   });
 };
 
-// User registration through application
-const createNewUserViaApp = (body, hashedPassword) => {
+// User registration
+const createNewUser = (body, hashedPassword) => {
   return new Promise((resolve, reject) => {
     const query = `INSERT INTO users (name, email, phoneNumber, password) 
                    VALUES (?, ?, ?, ?)`;
@@ -78,6 +78,37 @@ const authUser = (body) => {
   });
 };
 
+// Ensure input user ID matches with user ID in the table
+const findUserById = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT * FROM users WHERE id = ?';
+
+    db.query(query, [usersId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+// Display user activity
+const showUserActivity = (usersId) => {
+  return new Promise((resolve, reject) => {
+    const query = ` SELECT point, sendWaste, managedWaste 
+                    FROM users WHERE id= ?`;
+
+    db.query(query, [usersId], (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
 // Update user data
 const updateUser = (body, usersId) => {
   return new Promise(async (resolve, reject) => {
@@ -111,43 +142,12 @@ const updateUser = (body, usersId) => {
   });
 };
 
-// Display user activity
-const showUserActivity = (usersId) => {
-  return new Promise((resolve, reject) => {
-    const query = ` SELECT point, sendWaste, managedWaste 
-                    FROM users WHERE id= ?`;
-
-    db.query(query, [usersId], (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
-
-// Ensure input user ID matches with user ID in the table
-const findUserById = (usersId) => {
-  return new Promise((resolve, reject) => {
-    const query = 'SELECT * FROM users WHERE id = ?';
-
-    db.query(query, [usersId], (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
-
 module.exports = {
   checkConnectionDB,
   isUserRegistered,
-  createNewUserViaApp,
+  createNewUser,
   authUser,
-  updateUser,
-  showUserActivity,
   findUserById,
+  showUserActivity,
+  updateUser,
 };
