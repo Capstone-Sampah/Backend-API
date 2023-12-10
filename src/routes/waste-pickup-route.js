@@ -2,32 +2,33 @@ const express = require('express');
 const router = express.Router();
 const WastePickupController = require('../controllers/waste-pickup-controller');
 
-// List of organic partners
-router.get('/organicpartner', WastePickupController.getOrganicPartners);
+// Display list of organic partners
+router.get('/list/partners/organic', WastePickupController.getOrganicPartners);
 
-// List of non-organic partners
-router.get('/nonorganicpartner', WastePickupController.getNonOrganicPartners);
+// Display list of non-organic partners
+router.get('/list/partners/nonorganic',
+    WastePickupController.getNonOrganicPartners);
 
-// List of organic waste type
-router.get('/organictypes', WastePickupController.getOrganicWasteType);
+// Display list of organic waste types
+router.get('/list/types/organic', WastePickupController.getOrganicWasteTypes);
 
-// List of non-organic waste type
-router.get('/nonorganictypes', WastePickupController.getNonOrganicWasteType);
+// Display list of non-organic waste types
+router.get('/list/types/nonorganic',
+    WastePickupController.getNonOrganicWasteTypes);
 
-// Order waste pickup
-router.post('/order/:usersId', WastePickupController.orderWastePickup);
+// Create waste pickup order
+router.post('/users/:usersId/order', WastePickupController.orderWastePickup);
 
-// List of history waste pickup ('Dalam Antrian')
-router.get('/history/:usersId/pending',
+// Display list of history waste pickup with status 'Dalam Antrian'
+router.get('/users/:usersId/history/pending',
     WastePickupController.getPendingWastePickup);
 
-
-// List of history waste pickup ('Sedang Diproses')
-router.get('/history/:usersId/accept',
+// Display list of history waste pickup with status 'Sedang Diproses'
+router.get('/users/:usersId/history/accept',
     WastePickupController.getAcceptWastePickup);
 
-// List of history waste pickup ('Permintaan Ditolak')
-router.get('/history/:usersId/decline',
+// Display list of history waste pickup with status 'Permintaan Ditolak'
+router.get('/users/:usersId/history/decline',
     WastePickupController.getDeclineWastePickup);
 
 module.exports = router;

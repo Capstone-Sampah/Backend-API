@@ -1,9 +1,9 @@
 const WastePickupModel = require('../models/waste-pickup-model');
 
-// Display partners
+// Display list of organic partners
 const getOrganicPartners = async (req, res) => {
   try {
-    const data = await WastePickupModel.showOrganicPartner();
+    const data = await WastePickupModel.showOrganicPartners();
     res.status(200).json({
       message: 'List of organic partners',
       data: data,
@@ -16,11 +16,12 @@ const getOrganicPartners = async (req, res) => {
   }
 };
 
+// Display list of non-organic partners
 const getNonOrganicPartners = async (req, res) => {
   try {
-    const data = await WastePickupModel.showNonOrganicPartner();
+    const data = await WastePickupModel.showNonOrganicPartners();
     res.status(200).json({
-      message: 'List of non organic partners',
+      message: 'List of non-organic partners',
       data: data,
     });
   } catch (error) {
@@ -31,12 +32,12 @@ const getNonOrganicPartners = async (req, res) => {
   }
 };
 
-// Display waste type
-const getOrganicWasteType = async (req, res) => {
+// Display list of organic waste types
+const getOrganicWasteTypes = async (req, res) => {
   try {
-    const data = await WastePickupModel.showOrganicWasteType();
+    const data = await WastePickupModel.showOrganicWasteTypes();
     res.status(200).json({
-      message: 'List of organic waste type',
+      message: 'List of organic waste types',
       data: data,
     });
   } catch (error) {
@@ -47,11 +48,12 @@ const getOrganicWasteType = async (req, res) => {
   }
 };
 
-const getNonOrganicWasteType = async (req, res) => {
+// Display list of non-organic waste types
+const getNonOrganicWasteTypes = async (req, res) => {
   try {
-    const data = await WastePickupModel.showNonOrganicWasteType();
+    const data = await WastePickupModel.showNonOrganicWasteTypes();
     res.status(200).json({
-      message: 'List of non organic waste type',
+      message: 'List of non-organic waste types',
       data: data,
     });
   } catch (error) {
@@ -62,27 +64,7 @@ const getNonOrganicWasteType = async (req, res) => {
   }
 };
 
-
-// Check partner and waste type available or not
-const checkPartnerExists = async (partnersId) => {
-  try {
-    const partner = await WastePickupModel.findPartnerById(partnersId);
-    return !!partner;
-  } catch (error) {
-    throw (error);
-  }
-};
-
-const checkWasteTypeExists = async (typeId) => {
-  try {
-    const wasteType = await WastePickupModel.findWasteTypeById(typeId);
-    return !!wasteType;
-  } catch (error) {
-    throw (error);
-  }
-};
-
-// Create waste pickup
+// Create waste pickup order
 const orderWastePickup = async (req, res) => {
   const {usersId} = req.params;
   const {
@@ -100,11 +82,27 @@ const orderWastePickup = async (req, res) => {
   } = req.body;
 
   // Check condition
+  const user = await WastePickupModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   if (!partnersId || !phoneNumber || !province || !subDistrict || !village ||
       !postalCode || !address || !date || !time || !note || !wasteItems
   ) {
     return res.status(400).json({
       message: 'Your entered data does not match what instructed in form',
+    });
+  }
+
+  const partner = await WastePickupModel.findPartnerById(partnersId);
+
+  if (!partner.length) {
+    return res.status(404).json({
+      message: 'Sorry, partner data not found',
     });
   }
 
@@ -126,19 +124,11 @@ const orderWastePickup = async (req, res) => {
     });
   }
 
-  const checkPartner = await checkPartnerExists(partnersId);
-
-  if (!checkPartner) {
-    return res.status(400).json({
-      message: 'Sorry, partner data not found',
-    });
-  }
-
   for (const items of wasteItems) {
-    const checkTypeId = await checkWasteTypeExists(items.typeId);
+    const wasteType = await WastePickupModel.findWasteTypeById(items.typeId);
 
-    if (!checkTypeId) {
-      return res.status(400).json({
+    if (!wasteType) {
+      return res.status(404).json({
         message: 'Sorry, one or more waste items have an invalid waste type',
       });
     }
@@ -210,9 +200,19 @@ const orderWastePickup = async (req, res) => {
   }
 };
 
-// Display history waste pickup
+// Display list of history waste pickup with status 'Dalam Antrian'
 const getPendingWastePickup = async (req, res) => {
   const {usersId} = req.params;
+
+  // Check condition
+  const user = await WastePickupModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   try {
     const orders = await WastePickupModel.showPendingWastePickup(usersId);
     const detailOrders = await Promise.all(
@@ -221,6 +221,9 @@ const getPendingWastePickup = async (req, res) => {
           WastePickupModel.showOrderWasteItems(item.id);
           return {
             pickupId: item.id,
+            status: item.status,
+            partner: item.partner,
+            category: item.category,
             phoneNumber: item.phoneNumber,
             province: item.province,
             subDistrict: item.subDistrict,
@@ -230,8 +233,6 @@ const getPendingWastePickup = async (req, res) => {
             date: item.date,
             time: item.time,
             note: item.note,
-            createdAt: item.created_at,
-            status: item.status,
             timeAgo: item.timeAgo,
             wasteItems: wasteItems,
           };
@@ -249,8 +250,19 @@ const getPendingWastePickup = async (req, res) => {
   }
 };
 
+// Display list of history waste pickup with status 'Sedang Diproses'
 const getAcceptWastePickup = async (req, res) => {
   const {usersId} = req.params;
+
+  // Check condition
+  const user = await WastePickupModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   try {
     const orders = await WastePickupModel.showAcceptWastePickup(usersId);
     const detailOrders = await Promise.all(
@@ -259,21 +271,20 @@ const getAcceptWastePickup = async (req, res) => {
           WastePickupModel.showOrderWasteItems(item.id);
           return {
             pickupId: item.id,
+            status: item.status,
+            partner: item.partner,
+            category: item.category,
             phoneNumber: item.phoneNumber,
             province: item.province,
             subDistrict: item.subDistrict,
             village: item.village,
             postalCode: item.postalCode,
             address: item.address,
-            category: item.category,
-            partner: item.partner,
             date: item.date,
             time: item.time,
             note: item.note,
-            status: item.status,
             timeAgo: item.timeAgo,
             wasteItems: wasteItems,
-            createdAt: item.createdAt,
           };
         }),
     );
@@ -289,8 +300,19 @@ const getAcceptWastePickup = async (req, res) => {
   }
 };
 
+// Display list of history waste pickup with status 'Permintaan Ditolak'
 const getDeclineWastePickup = async (req, res) => {
   const {usersId} = req.params;
+
+  // Check condition
+  const user = await WastePickupModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   try {
     const orders = await WastePickupModel.showDeclineWastePickup(usersId);
     const detailOrders = await Promise.all(
@@ -299,21 +321,20 @@ const getDeclineWastePickup = async (req, res) => {
           WastePickupModel.showOrderWasteItems(item.id);
           return {
             pickupId: item.id,
+            status: item.status,
+            partner: item.partner,
+            category: item.category,
             phoneNumber: item.phoneNumber,
             province: item.province,
             subDistrict: item.subDistrict,
             village: item.village,
             postalCode: item.postalCode,
             address: item.address,
-            category: item.category,
-            partner: item.partner,
             date: item.date,
             time: item.time,
             note: item.note,
-            status: item.status,
             timeAgo: item.timeAgo,
             wasteItems: wasteItems,
-            createdAt: item.createdAt,
           };
         }),
     );
@@ -332,8 +353,8 @@ const getDeclineWastePickup = async (req, res) => {
 module.exports = {
   getOrganicPartners,
   getNonOrganicPartners,
-  getOrganicWasteType,
-  getNonOrganicWasteType,
+  getOrganicWasteTypes,
+  getNonOrganicWasteTypes,
   orderWastePickup,
   getPendingWastePickup,
   getAcceptWastePickup,
