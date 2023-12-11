@@ -1,7 +1,7 @@
 const uid = require('uid-safe');
 const VoucherModel = require('../models/voucher-model');
 
-// Display vouchers
+// Display list of vouchers
 const getVouchers = async (req, res) => {
   try {
     const data = await VoucherModel.showVoucher();
@@ -25,35 +25,35 @@ const getVouchers = async (req, res) => {
   }
 };
 
-// Create voucher redeem
+// Perform voucher redemption
 const redeemVoucher = async (req, res) => {
   const {usersId} = req.params;
   const {vouchersId} = req.body;
 
-  // Check condition 1
+  // Check condition
+  const user = await VoucherModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   if (!vouchersId) {
     return res.status(400).json({
       message: 'You entered data does not match what was instructed in form',
     });
   }
 
+  const voucher = await VoucherModel.findVoucherById(vouchersId);
+
+  if (!voucher.length) {
+    return res.status(404).json({
+      message: 'Sorry, voucher data not found',
+    });
+  }
+
   try {
-    const user = await VoucherModel.findUserById(usersId);
-    const voucher = await VoucherModel.findVoucherById(vouchersId);
-
-    // Check condition 2
-    if (!user.length) {
-      return res.status(400).json({
-        message: 'Sorry, user data not found',
-      });
-    }
-
-    if (!voucher.length) {
-      return res.status(400).json({
-        message: 'Sorry, voucher data not found',
-      });
-    }
-
     const userPoint = user[0].point;
     const voucherPoint = voucher[0].point;
     const voucherTotal = voucher[0].total;
@@ -62,7 +62,7 @@ const redeemVoucher = async (req, res) => {
       // Reduce user point
       await VoucherModel.setUserPoint(usersId, userPoint, voucherPoint);
 
-      // Reduce voucher toal
+      // Reduce voucher total
       const newVoucherTotal = voucherTotal - 1;
       const newVoucherStatus = newVoucherTotal === 0 ?
                             'Habis' : voucher[0].status;
@@ -84,14 +84,14 @@ const redeemVoucher = async (req, res) => {
         });
       });
 
-      // Create receipt redeem voucher
+      // Create voucher receipt
       const receiptId = await VoucherModel.createVoucherReceipt(
           usersId,
           vouchersId,
           voucherToken,
       );
 
-      // Display user voucher receipt
+      // Display voucher receipt just now
       const data = await VoucherModel.showNewVoucherReceipt(receiptId);
 
       return res.status(201).json({
@@ -111,20 +111,20 @@ const redeemVoucher = async (req, res) => {
   }
 };
 
-// Display voucher receipts
+// Display list of voucher receipts owned by user
 const getVoucherReceipts = async (req, res) => {
   const {usersId} = req.params;
 
+  // Check condition
+  const user = await VoucherModel.findUserById(usersId);
+
+  if (!user.length) {
+    return res.status(404).json({
+      message: 'Sorry, user data not found',
+    });
+  }
+
   try {
-    const user = await VoucherModel.findUserById(usersId);
-
-    // Check condition
-    if (!user.length) {
-      return res.status(400).json({
-        message: 'Sorry, user data not found',
-      });
-    }
-
     const data = await VoucherModel.showVoucherReceipt(usersId);
 
     return res.status(200).json({

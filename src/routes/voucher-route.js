@@ -2,13 +2,14 @@ const express = require('express');
 const VoucherController = require('../controllers/voucher-controller');
 const router = express.Router();
 
-// List all vouchers
+// Display list of vouchers
 router.get('/list', VoucherController.getVouchers);
 
-// Create redeem voucher
-router.post('/redeem/:usersId', VoucherController.redeemVoucher);
+// Perform voucher redemption
+router.post('/users/:usersId/redeem', VoucherController.redeemVoucher);
 
 // List all voucher receipts
-router.get('/users/:usersId', VoucherController.getVoucherReceipts);
+router.get('/users/:usersId/list/receipts',
+    VoucherController.getVoucherReceipts);
 
 module.exports = router;

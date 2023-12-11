@@ -32,6 +32,12 @@ app.get('/', (req, res) => {
   res.status(200).send(`<h2>${message}</h2>`);
 });
 
+// Middleware for handling route not found
+app.use((req, res) => {
+  const message = `The requested URL was not found on this server 😞!`;
+  res.status(404).send(`<h2>${message}</h2>`);
+});
+
 // Connect to database
 checkConnectionDB;
 
