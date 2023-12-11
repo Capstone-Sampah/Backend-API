@@ -29,29 +29,23 @@ This is Backend API Service for EcoBin App ♻️ - Product Capstone Project on 
 ### 👉 Install
 - Clone the repository
 
-  ```
-
+  ~~~
   https://github.com/Ecobin-Capstone/Backend-API.git
-
-  ```
+  ~~~
 
 - Install NPM modules
   
-  ```
-
+  ~~~
   npm install
-  
-  ```
+  ~~~
 
 ### 👉 Run
 - Create `.env` file and [setup with the following variables](.env.example)
 - Launch the app
   
-  ```
-  
+  ~~~
   npm run start
-  
-  ```
+  ~~~
 
 ## Documentation links 📝 :
 - [Cloud Infrastructure]()
