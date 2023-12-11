@@ -6,6 +6,7 @@ const userRoutes = require('./routes/user-route');
 const partnerRoutes = require('./routes/partner-route');
 const wastePickupRoutes = require('./routes/waste-pickup-route');
 const voucherRoutes = require('./routes/voucher-route');
+const wasteRecycleRoutes = require('./routes/waste-recycle-route');
 
 const app = express();
 require('dotenv').config();
@@ -24,6 +25,7 @@ app.use('/users', userRoutes);
 app.use('/partners', partnerRoutes);
 app.use('/wastepickup', wastePickupRoutes);
 app.use('/vouchers', voucherRoutes);
+app.use('/recycle', wasteRecycleRoutes);
 
 // Index route
 app.get('/', (req, res) => {
