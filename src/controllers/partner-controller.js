@@ -162,7 +162,7 @@ const getDeclineWastePickup = async (req, res) => {
             subDistrict: item.subDistrict,
             village: item.village,
             postalCode: item.postalCode,
-            lantitude: item.latitude,
+            latitude: item.latitude,
             longitude: item.longitude,
             address: item.address,
             date: item.date,
