@@ -67,6 +67,7 @@ const getNonOrganicWasteTypes = async (req, res) => {
 // Create waste pickup order
 const orderWastePickup = async (req, res) => {
   const {usersId} = req.params;
+
   const {
     partnersId,
     phoneNumber,
@@ -79,6 +80,11 @@ const orderWastePickup = async (req, res) => {
     time,
     note,
     wasteItems,
+  } = req.body;
+
+  let {
+    latitude,
+    longitude,
   } = req.body;
 
   // Check condition
@@ -134,6 +140,23 @@ const orderWastePickup = async (req, res) => {
     }
   }
 
+  if (latitude && typeof latitude !== 'number') {
+    return res.status(400).json({
+      message: 'Sorry, data type entered for latitude should be a number',
+    });
+  }
+
+  if (longitude && typeof longitude !== 'number') {
+    return res.status(400).json({
+      message: 'Sorry, data type entered for longitude should be a number',
+    });
+  }
+
+  if (latitude && longitude) {
+    latitude = parseFloat(latitude);
+    longitude = parseFloat(longitude);
+  }
+
   const pickupData = {
     usersId,
     partnersId,
@@ -142,6 +165,8 @@ const orderWastePickup = async (req, res) => {
     subDistrict,
     village,
     postalCode,
+    latitude: latitude || null,
+    longitude: longitude || null,
     address,
     date,
     time,

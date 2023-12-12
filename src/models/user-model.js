@@ -12,10 +12,10 @@ const checkConnectionDB = db.getConnection((error) => {
 });
 
 // Check user is registered or not
-const isUserRegistered = (body) => {
+const isUserRegistered = (email) => {
   return new Promise((resolve, reject) => {
     const query = 'SELECT * FROM users WHERE email = ?';
-    db.query(query, [body.email], (err, result) => {
+    db.query(query, [email], (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -26,17 +26,11 @@ const isUserRegistered = (body) => {
 };
 
 // User registration
-const createNewUser = (body, hashedPassword) => {
+const createNewUser = (userData) => {
   return new Promise((resolve, reject) => {
-    const query = `INSERT INTO users (name, email, phoneNumber, password) 
-                   VALUES (?, ?, ?, ?)`;
+    const query = `INSERT INTO users SET ?`;
 
-    db.query(query, [
-      body.name,
-      body.email,
-      body.phoneNumber,
-      hashedPassword,
-    ], (error, result) => {
+    db.query(query, [userData], (error, result) => {
       if (error) {
         reject(error);
       } else {

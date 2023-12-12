@@ -5,16 +5,26 @@ const {blacklistedTokens} = require('../middleware/verify-token');
 
 // User registration
 const register = async (req, res) => {
-  const {body} = req;
+  const {
+    name,
+    email,
+    phoneNumber,
+  } = req.body;
 
-  // Check condition
-  if (!body.name || !body.email || !body.phoneNumber || !body.password) {
+  let {
+    latitude,
+    longitude,
+    password,
+  } = req.body;
+
+  // Check condition 1
+  if (!name || !email || !phoneNumber || !password) {
     return res.status(400).json({
       message: 'You entered data does not match what was instructed in form',
     });
   }
 
-  const verifyEmail = await UsersModel.isUserRegistered(body);
+  const verifyEmail = await UsersModel.isUserRegistered(email);
 
   if (verifyEmail.length === 1) {
     return res.status(400).json({
@@ -22,17 +32,44 @@ const register = async (req, res) => {
     });
   }
 
+  if (latitude && typeof latitude !== 'number') {
+    return res.status(400).json({
+      message: 'Sorry, data type entered for latitude should be a number',
+    });
+  }
+
+  if (longitude && typeof longitude !== 'number') {
+    return res.status(400).json({
+      message: 'Sorry, data type entered for longitude should be a number',
+    });
+  }
+
+  // Convert data type from 'number' to 'float'
+  if (latitude && longitude) {
+    latitude = parseFloat(latitude);
+    longitude = parseFloat(longitude);
+  }
+
   // Encrypt password
-  const hashedPassword = await bcrypt.hash(body.password, 10);
+  password = await bcrypt.hash(password, 10);
+
+  // Wrap user data into an object
+  const userData = {
+    name,
+    email,
+    phoneNumber,
+    password,
+    latitude: latitude || null,
+    longitude: longitude || null,
+  };
 
   try {
-    // Add new user account
-    UsersModel.createNewUser(body, hashedPassword);
-    res.status(201).json({
+    await UsersModel.createNewUser(userData);
+    return res.status(201).json({
       message: 'Congratulation, your account has been successfully created',
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Internal server error',
       errorMessage: error,
     });
@@ -68,6 +105,8 @@ const login = async (req, res) => {
         name: item.name,
         email: item.email,
         phoneNumber: item.phoneNumber,
+        latitude: item.latitude,
+        longitude: item.longitude,
         createdAt: item.createdAt,
       }));
 
