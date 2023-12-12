@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/videos/list/', WasteRecycleController.getRecycleLinks);
 
 // Display recommendation video links for waste management based on type
-router.get('/videos/recommendation',
+router.post('/videos/recommendation',
     WasteRecycleController.getRecycleLinksByType);
 
 module.exports = router;
