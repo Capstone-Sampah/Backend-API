@@ -48,7 +48,7 @@ This is Backend API Service for EcoBin App ♻️ - Product Capstone Project on 
   ~~~
 
 ## Documentation links 📝 :
-- [Cloud Infrastructure]()
+- [Cloud Infrastructure](https://drive.google.com/file/d/1-rP8eJekKYvZLj51TGMQo07-nnHghmmS/view?usp=sharing)
 - [Database Design](https://drive.google.com/drive/folders/1Tw0mEbaVTagB2iNScof-BAnyQAyGmDWm?usp=sharing)
 - [Base URL - API]()
 - [API Documentation]()
