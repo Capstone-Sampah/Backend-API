@@ -51,9 +51,8 @@ This is Backend API Service for EcoBin App ♻️ - Product Capstone Project on 
 - [Cloud Architecture](https://drive.google.com/file/d/11vhO58HDk_UwpZEwUiLRmVwL1VKsgW2z/view?usp=sharing)
 - [Database Design](https://drive.google.com/drive/folders/1Tw0mEbaVTagB2iNScof-BAnyQAyGmDWm?usp=sharing)
 - [Base URL - API]()
-- [API Documentation]()
+- [API Documentation](https://documenter.getpostman.com/view/29935661/2s9Ykn7gL7)
 
 ## Contributors 👨‍💻 :
 - [Dzaru Rizky Fathan Fortuna - C296BSY4181](https://github.com/dzarurizkyy)
-- [Audrey Carissa Ngantung - C012BSX4380](https://github.com/APinguist)
 
